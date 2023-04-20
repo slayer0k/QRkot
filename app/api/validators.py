@@ -54,7 +54,12 @@ async def check_project_before_update(
     session: AsyncSession
 ):
     project = await check_project_exists(project_id, session)
-    if not obj_in.dict(exclude_none=True):
+    """if not obj_in.dict(exclude_none=True):
+        raise HTTPException(
+            status_code=422,
+            detail=EMPTY_REQUEST
+        )"""
+    if all((not obj_in.description, not obj_in.full_amount, not obj_in.name)):
         raise HTTPException(
             status_code=422,
             detail=EMPTY_REQUEST
@@ -66,6 +71,12 @@ async def check_project_before_update(
         )
     if obj_in.full_amount:
         if obj_in.full_amount < project.invested_amount:
+            raise HTTPException(
+                status_code=422,
+                detail=CANT_REDUCE_AMOUNT
+            )
+    if obj_in.invested_amount:
+        if obj_in.invested_amount < project.invested_amount:
             raise HTTPException(
                 status_code=422,
                 detail=CANT_REDUCE_AMOUNT

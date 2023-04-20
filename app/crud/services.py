@@ -5,6 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import CharityProject, Donation
 
+FORMAT = '{} days, {}:{}:{}.{}'
+
 
 async def refreshing_object(
     object: Union[CharityProject, Donation],
@@ -44,3 +46,14 @@ async def investment(
                 created_obj.fully_invested = True
                 created_obj.invested_amount = created_obj.full_amount
     return created_obj
+
+
+def timedelta_to_format(duration):
+    days, seconds = duration.days, duration.seconds
+    microseconds = duration.microseconds
+    hours = seconds // 3600
+    minutes = (seconds % 3600) // 60
+    seconds = (seconds % 60)
+    return FORMAT.format(
+        days, hours, minutes, seconds, microseconds
+    )

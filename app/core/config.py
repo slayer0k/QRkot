@@ -17,6 +17,10 @@ PROJECT_DOESNT_EXISTS: str = 'Такого проекта не существу�
 CANT_REDUCE_AMOUNT: str = 'Нельзя снижать сумму проекта ниже инвестированной!'
 PASSWORD_VALIDATION_ERROR: str = 'Password should be at least 3 characters'
 
+# table parameters:
+TABLE_ROWS = 100
+TABLE_COLUMNS = 10
+
 
 class Settings(BaseSettings):
     app_title: str = 'Фонд поддержки котиков'
@@ -24,7 +28,7 @@ class Settings(BaseSettings):
     secret: str = 'SECRET'
     superuser_email: Optional[EmailStr] = None
     superuser_password: Optional[str] = None
-    user_email: Optional[EmailStr] = None
+    email: Optional[EmailStr] = None
     type: Optional[str] = None
     project_id: Optional[str] = None
     private_key_id: Optional[str] = None
