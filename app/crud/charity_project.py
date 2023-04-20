@@ -1,15 +1,11 @@
-from datetime import datetime, timedelta
 from typing import Dict, List
 
-from sqlalchemy import func, select, text 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.types import DATETIME
 
 from app.crud.base import CRUDBase
 from app.crud.services import timedelta_to_format
 from app.models import CharityProject, Donation
-
-
 
 
 class CharityProjectCrud(CRUDBase):

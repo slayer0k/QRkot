@@ -1,9 +1,9 @@
 from datetime import datetime
-from typing import  Dict, List
+from typing import Dict, List
 
 from aiogoogle import Aiogoogle
 
-from app.core.config import settings, TABLE_ROWS, TABLE_COLUMNS
+from app.core.config import TABLE_COLUMNS, TABLE_ROWS, settings
 
 FORMAT = '%Y/%m/%d %H:%M:%S'
 
