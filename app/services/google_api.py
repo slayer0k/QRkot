@@ -1,35 +1,36 @@
-from datetime import datetime
 from typing import Dict, List
 
 from aiogoogle import Aiogoogle
 
-from app.core.config import TABLE_COLUMNS, TABLE_ROWS, settings
+import app.services.table_constants as constants
+from app.core.config import settings
 
-FORMAT = '%Y/%m/%d %H:%M:%S'
+
+def get_request_body():
+    return dict(
+        properties=dict(
+            title=constants.TABLE_TITLE,
+            locale=constants.LOCALE
+        ),
+        sheets=[
+            dict(
+                properties=dict(
+                    sheetType=constants.SHEET_TYPE,
+                    sheetId=constants.SHEET_ID,
+                    title=constants.SHEET_TITLE,
+                    gridProperties=dict(
+                        rowCount=constants.TABLE_ROWS,
+                        columnCount=constants.TABLE_COLUMNS
+                    )
+                )
+            )
+        ]
+    )
 
 
 async def spreadsheets_create(wrapper_service: Aiogoogle) -> str:
-    now_datetime = datetime.now().strftime(FORMAT)
     service = await wrapper_service.discover('sheets', 'v4')
-    spreadsheets_body = {
-        'properties': {
-            'title': f'Отчет на {now_datetime}',
-            'locale': 'ru_RU'
-        },
-        'sheets': [
-            {
-                'properties': {
-                    'sheetType': 'GRID',
-                    'sheetId': 0,
-                    'title': 'Лист1',
-                    'gridProperties': {
-                        'rowCount': TABLE_ROWS,
-                        'columnCount': TABLE_COLUMNS
-                    }
-                }
-            }
-        ]
-    }
+    spreadsheets_body = get_request_body()
     response = await wrapper_service.as_service_account(
         service.spreadsheets.create(json=spreadsheets_body)
     )
@@ -61,11 +62,7 @@ async def spreadsheets_update_value(
     wrapper_service: Aiogoogle
 ) -> None:
     service = await wrapper_service.discover('sheets', 'v4')
-    table_values = [
-        ['Отчет от', datetime.now().strftime(FORMAT)],
-        ['Топ проектов по скорости закрытия'],
-        ['Название проекта', 'Время сбора', 'Описание']
-    ]
+    table_values = constants.TABLE_HEADER
     for project in projects:
         new_row = [
             project['name'],
@@ -74,13 +71,13 @@ async def spreadsheets_update_value(
         ]
         table_values.append(new_row)
     update_body = {
-        'majorDimension': 'ROWS',
+        'majorDimension': constants.UPDATE_MAJOR_DIMENSION,
         'values': table_values
     }
     await wrapper_service.as_service_account(
         service.spreadsheets.values.update(
             spreadsheetId=spreadsheet_id,
-            range='A1:C100',
+            range=constants.UPDATE_RANGE,
             valueInputOption='USER_ENTERED',
             json=update_body
         )

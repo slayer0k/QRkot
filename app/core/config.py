@@ -16,10 +16,7 @@ PROJECT_NAME_OCCUPIED: str = 'Проект с таким именем уже с�
 PROJECT_DOESNT_EXISTS: str = 'Такого проекта не существует.'
 CANT_REDUCE_AMOUNT: str = 'Нельзя снижать сумму проекта ниже инвестированной!'
 PASSWORD_VALIDATION_ERROR: str = 'Password should be at least 3 characters'
-
-# table parameters:
-TABLE_ROWS = 100
-TABLE_COLUMNS = 10
+GOOGLE_API_DATA_TO_BIG: str = 'Данных слишком много'
 
 
 class Settings(BaseSettings):

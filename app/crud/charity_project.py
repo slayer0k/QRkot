@@ -1,6 +1,6 @@
 from typing import Dict, List
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.base import CRUDBase
@@ -13,24 +13,6 @@ class CharityProjectCrud(CRUDBase):
         self, session: AsyncSession
     ) -> List[Dict]:
         projects = await session.execute(
-            select(self.model).where(self.model.fully_invested == 1)
-        )
-        results = [
-            {
-                'name': project.name,
-                'time_diff': project.close_date - project.create_date,
-                'description': project.description
-            } for project in projects.scalars().all()
-        ]
-        results = sorted(results, key=lambda project: project['time_diff'])
-        for obj in results:
-            obj['time_diff'] = timedelta_to_format(
-                obj['time_diff']
-            )
-        '''
-        Сортировка уже в запросе, но теряется универсальность из-за
-        func.julianday
-        projects = await session.execute(
             select(self.model).where(
                 self.model.fully_invested == 1
             ).order_by(
@@ -38,16 +20,16 @@ class CharityProjectCrud(CRUDBase):
                 func.julianday(self.model.create_date)
             )
         )
-        results = [
-            {
-                'name': project.name,
-                'time_diff': timedelta_to_format(
+        return [
+            dict(
+                name=project.name,
+                time_diff=timedelta_to_format(
                     project.close_date - project.create_date
                 ),
-                'description': project.description
-            } for project in projects.scalars().all()
-        ]'''
-        return results
+                description=project.description
+            )
+            for project in projects.scalars().all()
+        ]
 
 
 charity_project_crud = CharityProjectCrud(CharityProject, Donation)

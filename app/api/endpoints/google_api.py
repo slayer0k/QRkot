@@ -4,6 +4,7 @@ from aiogoogle import Aiogoogle
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.validators import check_data_before_table_update
 from app.core.db import get_async_session
 from app.core.google_client import get_service
 from app.core.user import current_superuser
@@ -26,6 +27,7 @@ async def get_report(
     projects = await charity_project_crud.get_projects_by_complection_rate(
         session
     )
+    check_data_before_table_update(len(projects))
     spreadsheet_id = await spreadsheets_create(wrapper_service)
     await set_user_permissions(spreadsheet_id, wrapper_service)
     await spreadsheets_update_value(
