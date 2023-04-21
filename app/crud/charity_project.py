@@ -22,7 +22,7 @@ class CharityProjectCrud(CRUDBase):
                 'description': project.description
             } for project in projects.scalars().all()
         ]
-        results = sorted(results, key=lambda x: x['time_diff'])
+        results = sorted(results, key=lambda project: -(project['time_diff']))
         for obj in results:
             obj['time_diff'] = timedelta_to_format(
                 obj['time_diff']
