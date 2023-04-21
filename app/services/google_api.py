@@ -68,9 +68,9 @@ async def spreadsheets_update_value(
     ]
     for project in projects:
         new_row = [
-            project['Название проекта'],
-            project['Время сбора'],
-            project['Описание проекта']
+            project['name'],
+            project['time_diff'],
+            project['description']
         ]
         table_values.append(new_row)
     update_body = {

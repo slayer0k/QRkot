@@ -13,27 +13,40 @@ class CharityProjectCrud(CRUDBase):
         self, session: AsyncSession
     ) -> List[Dict]:
         projects = await session.execute(
-            select(
-                self.model.name,
-                self.model.close_date,
-                self.model.create_date,
-                self.model.description
-            ).where(
+            select(self.model).where(self.model.fully_invested == 1)
+        )
+        results = [
+            {
+                'name': project.name,
+                'time_diff': project.close_date - project.create_date,
+                'description': project.description
+            } for project in projects.scalars().all()
+        ]
+        results = sorted(results, key=lambda x: x['time_diff'])
+        for obj in results:
+            obj['time_diff'] = timedelta_to_format(
+                obj['time_diff']
+            )
+        '''
+        Сортировка уже в запросе, но теряется универсальность из-за
+        func.julianday
+        projects = await session.execute(
+            select(self.model).where(
                 self.model.fully_invested == 1
+            ).order_by(
+                func.julianday(self.model.close_date) -
+                func.julianday(self.model.create_date)
             )
         )
         results = [
             {
-                'Название проекта': project.name,
-                'Время сбора': project.close_date - project.create_date,
-                'Описание проекта': project.description
-            } for project in projects
-        ]
-        results = sorted(results, key=lambda x: x['Время сбора'])
-        for obj in results:
-            obj['Время сбора'] = timedelta_to_format(
-                obj['Время сбора']
-            )
+                'name': project.name,
+                'time_diff': timedelta_to_format(
+                    project.close_date - project.create_date
+                ),
+                'description': project.description
+            } for project in projects.scalars().all()
+        ]'''
         return results
 
 
