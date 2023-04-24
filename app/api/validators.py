@@ -1,18 +1,11 @@
-from typing import List
-
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import (CANT_REDUCE_AMOUNT, CANT_UPDATE_CLOSED_PROJECT,
-                             EMPTY_REQUEST, GOOGLE_API_DATA_TO_BIG,
-                             GOOGLE_API_TO_MANY_COLUMNS_IN_ROW,
-                             PROJECT_DOESNT_EXISTS, PROJECT_NAME_OCCUPIED,
-                             PROJECT_WAS_FUNDED)
+                             EMPTY_REQUEST, PROJECT_DOESNT_EXISTS,
+                             PROJECT_NAME_OCCUPIED, PROJECT_WAS_FUNDED)
 from app.crud import charity_project_crud
-from app.models import CharityProject
 from app.schemas.charity_project import CharityProjectUpdate
-from app.services.table_constants import (TABLE_COLUMNS, TABLE_HEADER,
-                                          TABLE_ROWS)
 
 
 async def check_project_exists(
@@ -89,17 +82,3 @@ async def check_project_before_update(
                 detail=CANT_REDUCE_AMOUNT
             )
     return project
-
-
-def check_data_before_table_update(projects: List[CharityProject]) -> None:
-    if len(projects) + len(TABLE_HEADER) > TABLE_ROWS:
-        raise HTTPException(
-            status_code=422,
-            detail=GOOGLE_API_DATA_TO_BIG
-        )
-    if projects[0]:
-        if len(projects[0]) > TABLE_COLUMNS:
-            raise HTTPException(
-                status_code=422,
-                detail=GOOGLE_API_TO_MANY_COLUMNS_IN_ROW
-            )

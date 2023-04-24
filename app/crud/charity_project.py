@@ -26,7 +26,7 @@ class CharityProjectCrud(CRUDBase):
                 time_diff=timedelta_to_format(
                     project.close_date - project.create_date
                 ),
-                description=project.description
+                description=project.description,
             )
             for project in projects.scalars().all()
         ]
