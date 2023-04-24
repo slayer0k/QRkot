@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseSettings, EmailStr
 
@@ -41,11 +41,28 @@ INITIAL_SPREADSHEET_BODY = dict(
         )
     ]
 )
-TABLE_HEADERS = [
+TABLE_HEADERS: List = [
     ['Отчет от', datetime.now().strftime(DATETIME_FORMAT)],
     ['Топ проектов по скорости закрытия'],
     ['Название проекта', 'Время сбора', 'Описание']
 ]
+
+# GoogleApi sheet update errors
+TO_MANY_FIELDS_IN_PROJECT: str = (
+    'Кол-во колонок в таблице: {columns} меньше, чем'
+    'кол-во данных передаваемых из проекта: {fields}'
+)
+HEADERS_FAULT: str = (
+    'Проблема в заголовках их больше: {headers_len}, '
+    'чем колонок в таблице: {columns}'
+)
+TO_MANY_OBJECTS_IN_RESPONSE: str = (
+    'Кол-во строк, которые вы обновляете: {values} '
+    'больше кол-во строк в таблице: {rows}'
+)
+PERMISSIONS_ERROR: str = 'Что-то пошло не так при выдаче прав: {error}'
+TABLE_CREATE_ERROR: str = 'Что-то пошло не так при создании таблицы: {error}'
+UPDATE_UNDESCRIBED_ERROR: str = 'Что-то пошло не так при обновлении таблицы: {error}'
 
 
 class Settings(BaseSettings):

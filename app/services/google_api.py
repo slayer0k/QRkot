@@ -4,8 +4,7 @@ from typing import Dict, List, Tuple
 
 from aiogoogle import Aiogoogle
 
-from app.core.config import (DATETIME_FORMAT, INITIAL_SPREADSHEET_BODY,
-                             TABLE_HEADERS, settings)
+import app.core.config as conf
 from app.error_handlers.google_api_exceptions import (
     SpreadsheetException, update_exceptions_handler)
 
@@ -19,13 +18,13 @@ def get_json(
     grid_rows: int = None,
     grid_columns: int = None,
 ) -> Dict:
-    spreadsheet_body = deepcopy(INITIAL_SPREADSHEET_BODY)
+    spreadsheet_body = deepcopy(conf.INITIAL_SPREADSHEET_BODY)
     properties = spreadsheet_body['properties']
     if title:
         properties['title'] = title
     else:
         properties['title'] = properties['title'].format(
-            datetime=datetime.now().strftime(DATETIME_FORMAT)
+            datetime=datetime.now().strftime(conf.DATETIME_FORMAT)
         )
     if locale:
         properties['locale'] = locale
@@ -48,20 +47,19 @@ async def spreadsheets_create(
         wrapper_service: Aiogoogle
 ) -> Tuple[str, Dict]:
     service = await wrapper_service.discover('sheets', 'v4')
-    spreadsheets_body = get_json(grid_columns=3, grid_rows=5)
+    spreadsheets_body = get_json()
     try:
         response = await wrapper_service.as_service_account(
             service.spreadsheets.create(json=spreadsheets_body)
         )
     except Exception as error:
         raise SpreadsheetException(
-            f'Что-то пошло не так при создании таблицы: {error}'
+            conf.TABLE_CREATE_ERROR.format(error=error)
         )
     sheet_properties = spreadsheets_body['sheets'][0]['properties']
     return (response['spreadsheetId'], dict(
         rows=sheet_properties['gridProperties']['rowCount'],
         columns=sheet_properties['gridProperties']['columnCount'],
-        sheet_id=sheet_properties['sheetId']
     ))
 
 
@@ -72,7 +70,7 @@ async def set_user_permissions(
     permissions_body = {
         'type': 'user',
         'role': 'writer',
-        'emailAddress': settings.email
+        'emailAddress': conf.settings.email
     }
     service = await wrapper_service.discover('drive', 'v3')
     try:
@@ -85,7 +83,7 @@ async def set_user_permissions(
         )
     except Exception as error:
         raise SpreadsheetException(
-            f'Что-то пошло не так при выдаче прав: {error}'
+            conf.PERMISSIONS_ERROR.format(error=error)
         )
 
 
@@ -96,20 +94,23 @@ async def spreadsheets_update_value(
     wrapper_service: Aiogoogle
 ) -> None:
     service = await wrapper_service.discover('sheets', 'v4')
-    max_headers_len = max(map(len, TABLE_HEADERS))
+    max_headers_len = max(map(len, conf.TABLE_HEADERS))
     if max_headers_len > grid['columns']:
         await update_exceptions_handler(
-            f'Проблема в заголовках их больше: {max_headers_len}, '
-            f'чем колонок в таблице: {grid["columns"]}', spreadsheet_id,
+            conf.HEADERS_FAULT.format(
+                headers_len=max_headers_len, columns=grid['columns']
+            ),
+            spreadsheet_id,
             wrapper_service
         )
     if len(projects[0]) > grid['columns']:
         await update_exceptions_handler(
-            f'Кол-во колонок в таблице: {grid["columns"]} меньше, чем'
-            f'кол-во данных передаваемых из проекта: {len(projects[0])}',
+            conf.TO_MANY_FIELDS_IN_PROJECT.format(
+                columns=grid['columns'], fields=len(projects[0])
+            ),
             spreadsheet_id, wrapper_service
         )
-    table_values = TABLE_HEADERS
+    table_values = conf.TABLE_HEADERS
     for project in projects:
         new_row = [
             project['name'],
@@ -119,8 +120,9 @@ async def spreadsheets_update_value(
         table_values.append(new_row)
     if len(table_values) > grid['rows']:
         await update_exceptions_handler(
-            f'Кол-во строк, которые вы обновляете: {len(table_values)} '
-            f'больше кол-во строк в таблице: {grid["rows"]}',
+            conf.TO_MANY_OBJECTS_IN_RESPONSE.format(
+                values=len(table_values), rows=grid['rows']
+            ),
             spreadsheet_id, wrapper_service
         )
     update_body = {
@@ -138,5 +140,5 @@ async def spreadsheets_update_value(
         )
     except Exception as error:
         raise SpreadsheetException(
-            f'Что-то пошло не так при обновлении таблицы: {error}'
+            conf.UPDATE_UNDESCRIBED_ERROR.format(error=error)
         )
