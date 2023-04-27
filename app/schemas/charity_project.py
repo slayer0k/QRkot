@@ -14,7 +14,6 @@ class CharityProjectUpdate(BaseModel):
         None, min_length=FIELD_MIN_LENGTH
     )
     full_amount: Optional[PositiveInt]
-    invested_amount: Optional[PositiveInt]
 
 
 class CharityProjectCreate(BaseModel):
