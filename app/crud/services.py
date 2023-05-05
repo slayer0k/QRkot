@@ -5,8 +5,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import CharityProject, Donation
 
-FORMAT = '{} days, {}:{}:{}.{}'
-
 
 async def refreshing_object(
     object: Union[CharityProject, Donation],
@@ -19,36 +17,32 @@ async def refreshing_object(
 
 
 async def investment(
-    created_obj: Union[CharityProject, Donation],
-    target_objs: List[Union[CharityProject, Donation]],
-    session: AsyncSession
+    target: Union[CharityProject, Donation],
+    sources: List[Union[CharityProject, Donation]],
 ) -> Union[CharityProject, Donation]:
-    index = 0
-    required_funds = created_obj.full_amount
-    while created_obj.fully_invested is False and index < len(target_objs):
-        target_obj = target_objs[index]
-        free_cash = target_obj.full_amount - target_obj.invested_amount
+    required_funds = target.full_amount
+    for source in sources:
+        free_cash = source.full_amount - source.invested_amount
         if required_funds - free_cash < 0:
-            created_obj.fully_invested = True
-            created_obj.close_date = datetime.now()
-            created_obj.invested_amount = created_obj.full_amount
-            target_obj.invested_amount += required_funds
-            session.add(target_obj)
-        else:
-            index += 1
-            target_obj.fully_invested = True
-            target_obj.close_date = datetime.now()
-            target_obj.invested_amount = target_obj.full_amount
-            created_obj.invested_amount += free_cash
-            session.add(target_obj)
-            if created_obj.full_amount == created_obj.invested_amount:
-                created_obj.close_date = datetime.now()
-                created_obj.fully_invested = True
-                created_obj.invested_amount = created_obj.full_amount
-    return created_obj
+            target.fully_invested = True
+            target.close_date = datetime.now()
+            target.invested_amount = target.full_amount
+            source.invested_amount += required_funds
+            break
+        source.fully_invested = True
+        source.close_date = datetime.now()
+        source.invested_amount = source.full_amount
+        target.invested_amount += free_cash
+        if target.full_amount == target.invested_amount:
+            target.close_date = datetime.now()
+            target.fully_invested = True
+            target.invested_amount = target.full_amount
+            break
+    return target, sources
 
 
 def timedelta_to_format(duration):
+    FORMAT = '{} days, {}:{}:{}.{}'
     days, seconds = duration.days, duration.seconds
     microseconds = duration.microseconds
     hours = seconds // 3600

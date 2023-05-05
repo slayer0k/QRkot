@@ -39,18 +39,19 @@ class CRUDBase:
         return opened_objs.scalars().all()
 
     async def create(
-        self, obj_in, session: AsyncSession, user: User = None
+        self, obj_in,
+        session: AsyncSession, user: User = None
     ):
         obj_in_data = obj_in.dict()
         if user:
             obj_in_data['user_id'] = user.id
         db_obj = self.model(**obj_in_data)
         await refreshing_object(db_obj, session)
-        db_obj = await investment(
-            created_obj=db_obj,
-            target_objs=await self.get_opened(session),
-            session=session
+        db_obj, sources = await investment(
+            target=db_obj,
+            sources=await self.get_opened(session),
         )
+        session.add_all(sources)
         await refreshing_object(db_obj, session)
         return db_obj
 
